@@ -177,6 +177,8 @@ function loadDashboard() {
 
 function logout() {
     localStorage.removeItem('loggedIn');
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
     window.location.href = 'login.html';
 }
 

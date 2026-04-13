@@ -105,51 +105,56 @@
 </div>
 
 <script>
+const API_URL = 'http://localhost:5000/api/auth';
 
-document.getElementById('registerForm').addEventListener('submit', (e) => {
+document.getElementById('registerForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const name = document.getElementById('name').value;
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+    const btn = e.target.querySelector('button');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Registering...';
 
-    e.preventDefault();
+    if (password !== confirmPassword) {
+        showAlert('Passwords do not match', 'danger');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-check-circle"></i> Register';
+        return;
+    }
 
-    const name = document.getElementById('name').value;
-
-    const email = document.getElementById('email').value;
-
-    const password = document.getElementById('password').value;
-
-    const confirmPassword = document.getElementById('confirmPassword').value;
-
-    if (password !== confirmPassword) {
-
-        showAlert('Passwords do not match', 'danger');
-
-        return;
-
-    }
-
-    // Mock registration: store in localStorage
-
-    const user = { name, email, password };
-
-    localStorage.setItem('user', JSON.stringify(user));
-
-    showAlert('Registration successful', 'success');
-
-    setTimeout(() => window.location.href = 'login.html', 2000);
-
+    try {
+        const res = await fetch(`${API_URL}/register`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, email, password })
+        });
+        const data = await res.json();
+        
+        if (res.ok) {
+            localStorage.setItem('token', data.token);
+            localStorage.setItem('user', JSON.stringify(data.user));
+            localStorage.setItem('loggedIn', 'true');
+            showAlert('Registration successful! Redirecting...', 'success');
+            setTimeout(() => window.location.href = 'dashboard.html', 1500);
+        } else {
+            showAlert(data.message || 'Registration failed', 'danger');
+        }
+    } catch (err) {
+        showAlert('Unable to connect to server', 'danger');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-check-circle"></i> Register';
+    }
 });
 
 function showAlert(message, type) {
-
-    const alert = document.getElementById('alert');
-
-    alert.className = `alert alert-${type}`;
-
-    alert.textContent = message;
-
-    alert.style.display = 'block';
-
+    const alert = document.getElementById('alert');
+    alert.className = `alert alert-${type}`;
+    alert.textContent = message;
+    alert.style.display = 'block';
 }
-
 </script>
 
 </body>
